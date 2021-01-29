@@ -14,34 +14,37 @@ healthOne = []
 handOneView = ""
 handTwoView = ""
 xx=0;
+emoji = ["🀄🃏🎴💾💽💿📀⛔"];
+element = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑"];
+selectionElement = ""
 
-emoji = ["♈🀄🃏🎴💾💽💿📀⛔"]
-element = ["a","b","c","d","e","f","g","h"]
 class cardMonster:
-    def __init__(self, id, attack, deffence, element, weakAgainst, strongAgainst, Influence):
+    def __init__(self, id, attack, deffence, element, strAffectedBy, defAffectedBy, infAttack, infDeffence):
         self.id = id;
         self.attack = attack;
         self.deffence = deffence;
         self.element = element;
-        self.weakAgainst = weakAgainst;
-        self.strongAgainst = strongAgainst;
-        self.Influence = Influence;
+        self.strAffectedBy = strAffectedBy;
+        self.defAffectedBy = defAffectedBy;
+        self.infAttack = infAttack;
+        self.infDeffence = infDeffence;
         self.type="monster"
 
 class cardTerrain:
-    def __init__(self, id, weakerAgainst, strongerAgainst, Influence):
+    def __init__(self, id, weakerAgainst, strongerAgainst, infAttack, infDeffence):
         self.id = id;
         self.weakerAgainst = weakerAgainst;
         self.strongerAgainst = strongerAgainst;
-        self.Influence = Influence;
+        self.infAttack = infAttack;
+        self.infDeffence = infDeffence;
         self.type="Terain"
 
 #generate deck
 for x in range(deckSize):
     if(round(randrange(0,3))!=0):
-        deck.append(cardMonster(x,randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9)));
+        deck.append(cardMonster(x,randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
     else:
-        deck.append(cardTerrain(x,randrange(0,9),randrange(0,9),randrange(0,9)));
+        deck.append(cardTerrain(x,randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
 
 shuffle(deck);
 deckOne = deck;
@@ -49,11 +52,11 @@ deckOne = deck;
 shuffle(deck);
 deckTwo = deck;
 
-#Draw phase
+#first Draw phase
 handOne = deckOne[-3:];
 deckOne = deckOne[:-3];
 
-#Draw phase
+#first Draw phase
 handTwo = deckTwo[-3:];
 deckTwo = deckTwo[:-3];
 
@@ -76,6 +79,23 @@ for x in range(handOneSize):
 print(handOneView);
 
 if(handOne[xx].type=="monster"):
-    print("id="str(handOne[xx].id)+"attack="str(handOne[xx].attack)+"deffence="str(handOne[xx].deffence)+"id="str(handOne[xx].id)+"id="str(handOne[xx].id)+)
+    selectionElement = str(element[handOne[xx].element]);
+    print("Card type: Monster");
+    print("Card element: "+selectionElement);
+    print("Attack="+str(handOne[xx].attack)+" Deffence="+str(handOne[xx].deffence));
 
-#card info
+    elementAttack = str(element[handOne[xx].strAffectedBy]);
+    if(handOne[xx].infAttack>0):
+        print("Attack +"+str(handOne[xx].infAttack)+" against "+elementAttack);
+    elif(handOne[xx].infAttack<0):
+        print("Attack "+str(handOne[xx].infAttack)+" against "+elementAttack);
+
+
+    elementDeffence = str(element[handOne[xx].defAffectedBy]);
+    if(handOne[xx].infDeffence>0):
+        print("Deffence +"+str(handOne[xx].infDeffence)+" against "+elementDeffence);
+    elif(handOne[xx].infDeffence<0):
+        print("Deffence "+str(handOne[xx].infDeffence)+" against "+elementDeffence);
+else:
+    print("Card type: Terrain");
+    print("id="+str(handOne[xx].id)+" attack="+str(handOne[xx].weakerAgainst)+" deffence="+str(handOne[xx].strongerAgainst))

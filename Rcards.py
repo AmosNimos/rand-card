@@ -21,7 +21,7 @@ handOneView = ""
 handTwoView = ""
 cursorX=0;
 cursorY=0;
-emoji = ["πππ΄πΎπ½πΏπβ"];
+emoji = ["πππ΄πΎπ½πΏπβ✅"];
 signs = ["[Aries β]","[Taurus β]","[Gemini β]","[Cancer β]","[Leo β]","[Virgo β]","[Libra β]","[Scorpius β]","[Sagittarius β]","[Capricornus β]"];
 selectionsign = ""
 
@@ -72,6 +72,7 @@ deckTwo = deckTwo[:-3];
 
 print("Player one health: ["+str(healthOne)+"]");
 print("Player two health: ["+str(healthTwo)+"]");
+print("");
 
 #player two hand
 handTwoSize=len(handTwo);
@@ -80,30 +81,36 @@ for x in range(handTwoSize):
 print(handTwoView);
 
 #field
-field=[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+field=[[0,0,1,1],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
 
 
 def display():
 	linetxt="";
 	for y in range(4):
-		print(linetxt);
 		linetxt="";
-		for x in range(3):
-			if x==cursorX and y ==cursorY:
-				linetxt+=colored("#",'red');
+		for x in range(0,5):
+			#print(str(x)+","+str(y));
+			if x == cursorX and y == cursorY:
+				#cursor there
+				linetxt+=colored("?",'red');
 			elif field[x][y]==0:
+				#empty there
 				linetxt+=colored(".",'white');
 			else:
-				linetxt+=colored("π΄",'white');
+				#card there
+				linetxt+=colored("#",'white');
+		print(linetxt);
 				
 def displayHandOne():
 	global cursorX;
 	global handOne;
 	global handOneView;
+	global signs;
+	cursorX=0;
 	#player one hand
 	handOneSize=len(handOne);
 	for x in range(handOneSize):
-		if x == cursorX:
+		if x == cursorX and cursorY==4:
 			handOneView += "π";
 		else:
 			handOneView += "π΄";
@@ -128,9 +135,9 @@ def displayHandOne():
 			print("Deffence +"+str(handOne[cursorX].infDeffence)+" against "+signsDeffence);
 		elif(handOne[cursorX].infDeffence<0):
 			print("Deffence "+str(handOne[cursorX].infDeffence)+" against "+signsDeffence);
-		else:
-			print("Card type: Terrain");
-			print("id="+str(handOne[cursorX].id)+" attack="+str(handOne[cursorX].weakerAgainst)+" deffence="+str(handOne[cursorX].strongerAgainst))
+	else:
+		print("Card type: Terrain");
+		print("id="+str(handOne[cursorX].id)+" attack="+str(handOne[cursorX].weakerAgainst)+" deffence="+str(handOne[cursorX].strongerAgainst))
 display();	
 print("");
 displayHandOne();

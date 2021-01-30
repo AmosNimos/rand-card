@@ -31,7 +31,9 @@ fieldHeight = 4;
 cardBack="🀄";
 cardFront="🃏";
 emptySpace="🎴";
-
+infoText="";
+lineEnd = "\n";
+margin = "  ";
 
 class cardMonster:
 	def __init__(self, id, attack, deffence, signs, strAffectedBy, defAffectedBy, infAttack, infDeffence):
@@ -87,15 +89,16 @@ def displayTop():
 	global healthTwo
 	global handTwo
 	global handTwoView
-	print("Player one health: ["+str(healthOne)+"]");
-	print("Player two health: ["+str(healthTwo)+"]");
+	print("")
+	print(margin+"Player one health: ["+str(healthOne)+"]");
+	print(margin+"Player two health: ["+str(healthTwo)+"]");
 	print("");
 	#player two hand
 	handTwoSize=len(handTwo);
 	handTwoView="";
 	for x in range(handTwoSize):
 		handTwoView += cardBack;
-	print(handTwoView);
+	print(margin+handTwoView);
 
 def displayField():
 	linetxt="";
@@ -114,7 +117,7 @@ def displayField():
 			else:
 				#card there
 				linetxt+=colored(cardBack,spaceColor);
-		print(linetxt);
+		print(margin+linetxt);
 
 def displayHandOne():
 	global cursorX;
@@ -122,6 +125,7 @@ def displayHandOne():
 	global handOne;
 	global handOneView;
 	global signs;
+	global infoText;
 
 
 	#player one hand
@@ -137,39 +141,41 @@ def displayHandOne():
 			handOneView += cardFront;
 		else:
 			handOneView += cardBack;
-	print(handOneView);
+	print(margin+handOneView);
 
 
 	if cursorY==4:
-		print("");
-		print("-[Info]-----------------------------------------------");
+		infoText = getInfo(handOne[cursorX]);
 
-		if(handOne[cursorX].type=="monster"):
-			selectionsign = str(signs[handOne[cursorX].signs]);
-			name = str(handOne[cursorX].name);
-			print("Name: "+name);
-			print("Type: Monster");
-			print("Sign: "+selectionsign);
-			print("Attack="+str(handOne[cursorX].attack)+" Deffence="+str(handOne[cursorX].deffence));
+def getInfo(getPos):
+	infoText = "";
+	if(getPos.type=="monster"):
+		selectionsign = str(signs[getPos.signs]);
+		name = str(getPos.name);
+		infoText += margin+"Name: "+name + lineEnd;
+		infoText += margin+"Type: Monster" + lineEnd;
+		infoText += margin+"Sign: "+selectionsign + lineEnd;
+		infoText += margin+"Attack="+str(getPos.attack)+" Deffence="+str(getPos.deffence) + lineEnd;
+		infoText += margin+"Effect:"+ lineEnd;
+		#print("defAf: "+str(handOne[cursorX].strAffectedBy))
+		#print(str(signs))
+		signsAttack = str(signs[getPos.strAffectedBy]);
+		if(handOne[cursorX].infAttack>0):
+			infoText += margin+"Attack +"+str(getPos.infAttack)+" against "+signsAttack + lineEnd;
+		elif(handOne[cursorX].infAttack<0):
+			infoText += margin+"Attack "+str(getPos.infAttack)+" against "+signsAttack + lineEnd;
 
-			#print("defAf: "+str(handOne[cursorX].strAffectedBy))
-			#print(str(signs))
-			signsAttack = str(signs[handOne[cursorX].strAffectedBy]);
-			if(handOne[cursorX].infAttack>0):
-				print("Attack +"+str(handOne[cursorX].infAttack)+" against "+signsAttack);
-			elif(handOne[cursorX].infAttack<0):
-				print("Attack "+str(handOne[cursorX].infAttack)+" against "+signsAttack);
-
-			#print("defAf: "+str(handOne[cursorX].defAffectedBy))
-			#print(str(signs))
-			signsDeffence = str(signs[handOne[cursorX].defAffectedBy]);
-			if(handOne[cursorX].infDeffence>0):
-				print("Deffence +"+str(handOne[cursorX].infDeffence)+" against "+signsDeffence);
-			elif(handOne[cursorX].infDeffence<0):
-				print("Deffence "+str(handOne[cursorX].infDeffence)+" against "+signsDeffence);
-		else:
-			print("Card type: Terrain");
-			print("id="+str(handOne[cursorX].id)+" attack="+str(handOne[cursorX].weakerAgainst)+" deffence="+str(handOne[cursorX].strongerAgainst));
+		#print("defAf: "+str(handOne[cursorX].defAffectedBy))
+		#print(str(signs))
+		signsDeffence = str(signs[getPos.defAffectedBy]);
+		if(handOne[cursorX].infDeffence>0):
+			infoText += margin+"Deffence +"+str(getPos.infDeffence)+" against "+signsDeffence + lineEnd;
+		elif(handOne[cursorX].infDeffence<0):
+			infoText += margin+"Deffence "+str(getPos.infDeffence)+" against "+signsDeffence + lineEnd;
+	else:
+		infoText += "Card type: Terrain" + lineEnd;
+		infoText += "id="+str(getPos.id)+" attack="+str(getPos.weakerAgainst)+" deffence="+str(getPos.strongerAgainst) + lineEnd;
+	return infoText
 
 def playerOneTurn(keypress):
 	global cursorX;
@@ -192,7 +198,7 @@ def playerOneTurn(keypress):
 		exit();
 
 #field
-field=[[0,0,1,1],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+field=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
 
 #Get keypress from the main function
 
@@ -220,3 +226,6 @@ while True:
 	displayField();
 	print("");
 	displayHandOne();
+	print("");
+	print(margin+"[Info]--------------------------------------");
+	print(infoText);

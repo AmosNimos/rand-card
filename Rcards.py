@@ -8,26 +8,22 @@ from termcolor import colored, cprint
 import namegenerator
 from curtsies import Input
 
-print ()
-
 #variables
 handOneSize = 0;
 handTwoSize = 0;
 deckSize = 12;
 handLimit = 6;
-firstDraw=6;
+firstDraw=3;
 deck=[]
-deckOne = []
-handOne = []
+deckOne = [];
+handOne = [];
 healthOne = 100;
 healthTwo = 100;
-handOneView = ""
-handTwoView = ""
+handOneView = "";
+handTwoView = "";
 cursorX=0;
 cursorY=0;
-emoji = ["🀄🃏🎴💾💽💿📀⛔?"];
-signs = ["[Aries ♈]","[Taurus ♉]","[Gemini ♊]","[Cancer ♋]","[Leo ♌]","[Virgo ♍]","[Libra ♎]","[Scorpius ♏]","[Sagittarius ♐]","[Capricornus ♑]"];
-selectionsign = ""
+selectionsign = "";
 fieldWidth= 5;
 fieldHeight = 4;
 infoText="";
@@ -36,6 +32,14 @@ margin = "  ";
 playerOne="";
 playerOnePick="";
 playerTwoPick="";
+playerTurn = randrange(0,2);
+
+if(playerTurn==0):
+	playerOneDrew=False;
+	playerTwoDrew=True;
+else:
+	playerOneDrew=True;
+	playerTwoDrew=False;
 #field
 field=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
 
@@ -46,9 +50,11 @@ holdingCardSymbol ="%" #green for monster and yellow for Terrain
 cursorSymbol = "*" #white for empty
 monsterCardSymbol = "#" #green for monster
 TerrainCardSymbol = "@" #yellow for Terrain
-cardBackSymbol="🀄";
-cardFrontSymbol="🃏";
-emptySpaceSymbol="🎴";
+cardBackSymbol="⬜";
+cardFrontSymbol="💠";
+emptySpaceSymbol="⬛";
+signs = ["[Aries ♈]","[Taurus ♉]","[Gemini ♊]","[Cancer ♋]","[Leo ♌]","[Virgo ♍]","[Libra ♎]","[Scorpius ♏]","[Sagittarius ♐]","[Capricornus ♑]","Aquarius ♒", "[Pisces ♓],[Ophiuchus ⛎]"];
+emoji = ["🀄🃏🎴💾💽💿📀⛔?🔳⬛⬜"];
 
 
 class cardMonster:
@@ -76,7 +82,7 @@ class cardTerrain:
 
 #generate deck
 for x in range(deckSize):
-	if(round(randrange(0,3))!=0):
+	if(round(randrange(0,3+1))!=0):
 		deck.append(cardMonster(x,randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
 	else:
 		deck.append(cardTerrain(x,randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
@@ -106,6 +112,7 @@ def displayTop():
 	global handTwo
 	global handTwoView
 	print("")
+	print(margin+"Turn: "+str(playerTurn));
 	print(margin+"Player one health: ["+str(healthOne)+"]");
 	print(margin+"Player two health: ["+str(healthTwo)+"]");
 	print("");
@@ -114,6 +121,8 @@ def displayTop():
 	handTwoView="";
 	for x in range(handTwoSize):
 		handTwoView += cardBackSymbol;
+	while(len(handTwoView)<handLimit):
+		handTwoView+=emptySpaceSymbol;
 	print(margin+handTwoView);
 
 def displayField():
@@ -222,6 +231,16 @@ def playerOneTurn(keypress):
 	global cursorX;
 	global cursorY;
 	global playerOnePick;
+	global playerOneDrew;
+	global deckOne;
+	global handOne;
+	global playerTurn;
+
+	if playerOneDrew == False:
+		handOne += deckOne[-1:];
+		deckOne = deckOne[:-1];
+		playerOneDrew = True;
+
 	if keypress == 'd':
 		cursorX+=1;
 	if keypress == 'a':
@@ -240,6 +259,9 @@ def playerOneTurn(keypress):
 			#place a card
 			field[cursorX][cursorY] = playerOnePick;
 			playerOnePick="";
+			playerTurn=1;
+			playerTwoDrew = False;
+
 
 
 
@@ -248,7 +270,34 @@ def playerOneTurn(keypress):
 		print(debug)
 		exit();
 
-#Get keypress from the main function
+def playerTwoTurn():
+	global fieldWidth;
+	global fieldHeight;
+	global playerTwoDrew;
+	global playerOneDrew;
+	global deckTwo;
+	global handTwo;
+	global playerTurn;
+	if playerTwoDrew == False:
+		handTwo += deckTwo[-1:];
+		deckTwo = deckTwo[:-1];
+		playerTwoDrew = True;
+
+	handTwoSize = len(handTwo);
+	pick = randrange(handTwoSize)
+	playerTwoPick=handTwo[pick];
+	del handTwo[pick]
+	pickX = randrange(fieldWidth-1);
+	pickY = randrange(fieldHeight/2);
+	field[pickX][pickY] = playerTwoPick;
+	playerTwoPick="";
+	playerTurn = 2;
+	playerOneDrew = False;
+
+def damageTurn():
+	global field;
+	exit();
+
 
 os.system('clear')
 displayTop();
@@ -258,8 +307,16 @@ print("");
 displayHandOne();
 
 while True:
+
 	keypress = main();
-	playerOneTurn(keypress);
+
+	if playerTurn == 0:
+		playerOneTurn(keypress);
+	elif playerTurn == 1:
+		playerTwoTurn();
+	elif playerTurn == 2:
+		damageTurn();
+
 	if(cursorX<0):
 		cursorX=0;
 	if(cursorY<0):
@@ -268,6 +325,7 @@ while True:
 		cursorX=fieldWidth-1;
 	if cursorY>fieldHeight:
 		cursorY=fieldHeight;
+
 	os.system('clear');
 	displayTop();
 	print("");

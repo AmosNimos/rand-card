@@ -2,6 +2,7 @@
 #Fri Jan 29 03:29:31 PM EST 2021
 from random import randrange
 from random import shuffle
+from random import sample
 import os
 #external dependency
 from termcolor import colored, cprint
@@ -11,14 +12,14 @@ from curtsies import Input
 #variables
 handOneSize = 0;
 handTwoSize = 0;
-deckSize = 12;
+deckSize = 30;
 handLimit = 6;
 firstDraw=3;
 deck=[]
 deckOne = [];
 handOne = [];
-healthOne = 100;
-healthTwo = 100;
+healthOne = 60;
+healthTwo = 60;
 handOneView = "";
 handTwoView = "";
 cursorX=0;
@@ -32,7 +33,9 @@ margin = "  ";
 playerOne="";
 playerOnePick="";
 playerTwoPick="";
-playerTurn = randrange(0,2);
+#playerTurn = randrange(0,2);
+playerTurn =0;
+playerLastAction="";
 
 if(playerTurn==0):
 	playerOneDrew=False;
@@ -63,8 +66,10 @@ class cardMonster:
 		self.attack = attack;
 		self.deffence = deffence;
 		self.signs = signs;
+		#what type are affected
 		self.strAffectedBy = strAffectedBy;
 		self.defAffectedBy = defAffectedBy;
+		#influence amount
 		self.infAttack = infAttack;
 		self.infDeffence = infDeffence;
 		self.type="monster"
@@ -83,15 +88,17 @@ class cardTerrain:
 #generate deck
 for x in range(deckSize):
 	if(round(randrange(0,3+1))!=0):
-		deck.append(cardMonster(x,randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
+		#monster
+		deck.append(cardMonster(x,randrange(0,20),randrange(0,10),randrange(0,9),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
 	else:
-		deck.append(cardTerrain(x,randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
+		#terrain
+		deck.append(cardTerrain(x,randrange(1,9),randrange(1,9),randrange(-9,9),randrange(-9,9)));
 
 shuffle(deck);
-deckOne = deck;
+deckOne = sample(deck,len(deck));
 
 shuffle(deck);
-deckTwo = deck;
+deckTwo = sample(deck,len(deck));
 
 #first Draw phase
 handOne = deckOne[-firstDraw:];
@@ -195,17 +202,17 @@ def getInfo(getPos):
 			#print(str(signs))
 			signsAttack = str(signs[getPos.strAffectedBy]);
 			if(getPos.infAttack>0):
-				infoText += margin+"Attack +"+str(getPos.infAttack)+" against "+signsAttack + lineEnd;
+				infoText += margin+signsAttack+" get +"+str(getPos.infAttack)+" attack"+ lineEnd;
 			elif(getPos.infAttack<0):
-				infoText += margin+"Attack "+str(getPos.infAttack)+" against "+signsAttack + lineEnd;
+				infoText += margin+signsAttack+" get "+str(getPos.infAttack)+" attack"+ lineEnd;
 
 			#print("defAf: "+str(handOne[cursorX].defAffectedBy))
 			#print(str(signs))
 			signsDeffence = str(signs[getPos.defAffectedBy]);
 			if(getPos.infDeffence>0):
-				infoText += margin+"Deffence +"+str(getPos.infDeffence)+" against "+signsDeffence + lineEnd;
+				infoText += margin+signsDeffence+" get +"+str(getPos.infDeffence)+" deffence"+ lineEnd;
 			elif(getPos.infDeffence<0):
-				infoText += margin+"Deffence "+str(getPos.infDeffence)+" against "+signsDeffence + lineEnd;
+				infoText += margin+signsDeffence+" get "+str(getPos.infDeffence)+" deffence"+ lineEnd;
 		else:
 			name = str(getPos.name);
 			infoText += margin+"Name: "+name + lineEnd;
@@ -262,14 +269,6 @@ def playerOneTurn(keypress):
 			playerTurn=1;
 			playerTwoDrew = False;
 
-
-
-
-	if keypress == '\x1b':
-		debug = "Exit";
-		print(debug)
-		exit();
-
 def playerTwoTurn():
 	global fieldWidth;
 	global fieldHeight;
@@ -296,8 +295,82 @@ def playerTwoTurn():
 
 def damageTurn():
 	global field;
-	exit();
+	global playerTurn;
+	global healthOne;
+	global healthTwo;
+	attackEffect=[[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]];
+	deffenceEffect=[[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]];
+	#attackEffect [row][sign] = amount
 
+	for x in range(fieldWidth):
+		for y in range(fieldHeight):
+			if field[x][y] != 0:
+				influence = field[x][y].infAttack;
+				sign = field[x][y].strAffectedBy;
+				attackEffect[x][sign]+=influence;
+
+	for x in range(fieldWidth):
+		for y in range(fieldHeight):
+			if field[x][y] != 0:
+				influence = field[x][y].infDeffence;
+				sign = field[x][y].defAffectedBy;
+				deffenceEffect[x][sign]+=influence;
+	
+	#total attack and deffence per row per player
+	deffenceTotalOne=[0,0,0,0,0];
+	attackTotalOne=[0,0,0,0,0];
+	deffenceTotalTwo=[0,0,0,0,0];
+	attackTotalTwo=[0,0,0,0,0];
+
+	#player one side
+	for x in range(fieldWidth):
+		for y in range(2,4):
+			if field[x][y] != 0 and field[x][y].type=="monster":
+				print("side two "+str(field[x][y].name))
+				sign = field[x][y].signs;
+				influenceDeffence = deffenceEffect[x][sign];
+				influenceAttack = attackEffect[x][sign];
+				deffenceTotalOne[x]+=field[x][y].deffence+influenceDeffence;
+				print(deffenceTotalOne[x]);
+				attackTotalOne[x]+=field[x][y].attack+influenceAttack;
+
+	for x in range(fieldWidth):
+		#player two side
+		for y in range(0,2):
+			if field[x][y] != 0 and field[x][y].type=="monster":
+				print("side two "+str(field[x][y].name))
+				sign = field[x][y].signs;
+				influenceDeffence = deffenceEffect[x][sign];
+				influenceAttack = attackEffect[x][sign];
+				deffenceTotalTwo[x]+=field[x][y].deffence+influenceDeffence;
+				print(deffenceTotalTwo[x]);
+				attackTotalTwo[x]+=field[x][y].attack+influenceAttack;
+
+	damageOne=0;
+	damageTwo=0;
+
+	for x in range(fieldWidth):
+		if attackTotalTwo[x]>0:
+			damageOne = attackTotalTwo[x]-deffenceTotalOne[x];
+		if attackTotalOne[x]>0:
+			damageTwo = attackTotalOne[x]-deffenceTotalTwo[x];
+
+	playerLastAction = "dmg1= "+str(damageOne)+" dmg2= "+str(damageTwo);
+	print(playerLastAction);
+	healthOne-=damageOne;
+	healthTwo-=damageTwo;
+
+	print(str(attackEffect[x]));
+	print(str(deffenceEffect[x]));
+	playerTurn = 0;
+
+def GameOver():
+	if(healthTwo==healthOne):
+		print("~DRAW~");
+	if(healthTwo>healthOne):
+		print("~Player two win~");
+	else:
+		print("~Player one win~");
 
 os.system('clear')
 displayTop();
@@ -307,7 +380,7 @@ print("");
 displayHandOne();
 
 while True:
-
+	playerLastAction="";
 	keypress = main();
 
 	if playerTurn == 0:
@@ -316,6 +389,8 @@ while True:
 		playerTwoTurn();
 	elif playerTurn == 2:
 		damageTurn();
+	elif playerTurn ==3:
+		GameOver();
 
 	if(cursorX<0):
 		cursorX=0;
@@ -326,15 +401,30 @@ while True:
 	if cursorY>fieldHeight:
 		cursorY=fieldHeight;
 
-	os.system('clear');
-	displayTop();
-	print("");
-	displayField();
-	print("");
-	displayHandOne();
-	print("");
-	if(playerOnePick!=""):
-		print("Holding: "+str(playerOnePick.name));
 
-	print(margin+"[Info]--------------------------------------");
-	print(infoText);
+
+	os.system('clear');
+	if(healthOne<1 or healthTwo<1 or len(deckOne)<1 or len(deckTwo)<1):
+		playerTurn=3;
+		GameOver();
+
+	if(playerTurn!=3):
+		displayTop();
+		print("");
+		displayField();
+		print("");
+		displayHandOne();
+		print("");
+
+		if(playerOnePick!=""):
+			playerLastAction ="Holding: "+str(playerOnePick.name);
+
+		print(margin+playerLastAction);
+		print(margin+"[Info]--------------------------------------");
+		print(infoText);
+
+	if keypress == '\x1b':
+		debug = "Exit";
+		print(debug);
+		exit();
+

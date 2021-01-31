@@ -18,8 +18,8 @@ firstDraw=3;
 deck=[]
 deckOne = [];
 handOne = [];
-healthOne = 60;
-healthTwo = 60;
+healthOne = 100;
+healthTwo = 100;
 handOneView = "";
 handTwoView = "";
 cursorX=0;
@@ -89,7 +89,7 @@ class cardTerrain:
 for x in range(deckSize):
 	if(round(randrange(0,3+1))!=0):
 		#monster
-		deck.append(cardMonster(x,randrange(0,20),randrange(0,10),randrange(0,9),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
+		deck.append(cardMonster(x,randrange(0,20),randrange(0,10),randrange(0,6),randrange(0,9),randrange(0,9),randrange(-9,9),randrange(-9,9)));
 	else:
 		#terrain
 		deck.append(cardTerrain(x,randrange(1,9),randrange(1,9),randrange(-9,9),randrange(-9,9)));
@@ -239,13 +239,19 @@ def playerOneTurn(keypress):
 	global cursorY;
 	global playerOnePick;
 	global playerOneDrew;
+	global playerTwoDrew;
 	global deckOne;
 	global handOne;
 	global playerTurn;
 
+	endTurn=False;
 	if playerOneDrew == False:
-		handOne += deckOne[-1:];
-		deckOne = deckOne[:-1];
+		drawAmount=2;
+		if(len(handOne)>3):
+			drawAmount=1;
+		if(len(handOne)<4):
+			handOne += deckOne[-drawAmount:];
+			deckOne = deckOne[:-drawAmount];
 		playerOneDrew = True;
 
 	if keypress == 'd':
@@ -265,9 +271,12 @@ def playerOneTurn(keypress):
 		elif playerOnePick != "" and cursorY > 1 and cursorY < fieldHeight:
 			#place a card
 			field[cursorX][cursorY] = playerOnePick;
+			if(playerOnePick.type=="monster" or len(handOne)<1):
+				endTurn=True;
 			playerOnePick="";
-			playerTurn=1;
 			playerTwoDrew = False;
+			if(endTurn==True):
+				playerTurn=1;
 
 def playerTwoTurn():
 	global fieldWidth;
@@ -277,9 +286,14 @@ def playerTwoTurn():
 	global deckTwo;
 	global handTwo;
 	global playerTurn;
+
 	if playerTwoDrew == False:
-		handTwo += deckTwo[-1:];
-		deckTwo = deckTwo[:-1];
+		drawAmount=2;
+		if(len(handTwo)>3):
+			drawAmount=1;
+		if(len(handTwo)<4):
+			handTwo += deckTwo[-drawAmount:];
+			deckTwo = deckTwo[:-drawAmount];
 		playerTwoDrew = True;
 
 	handTwoSize = len(handTwo);
@@ -289,9 +303,16 @@ def playerTwoTurn():
 	pickX = randrange(fieldWidth-1);
 	pickY = randrange(fieldHeight/2);
 	field[pickX][pickY] = playerTwoPick;
+	if(playerTwoPick.type=="monster" or len(handTwo)<1):
+		endTurn=True;
 	playerTwoPick="";
-	playerTurn = 2;
 	playerOneDrew = False;
+	if(endTurn==True):
+		playerTurn = 2;
+	else:
+		answer=input("End turn y/n ");
+		if(answer=="y"):
+			playerTurn = 2;
 
 def damageTurn():
 	global field;
